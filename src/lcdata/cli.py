@@ -26,13 +26,14 @@ class Experiment(TypedDict):
 class Context(TypedDict):
     replica_experiment: int
     data_dir: Path
+    experiment_number: int
     experiments: list[Experiment]
 
 
-def load_config(config_file: Path, replica_experiment: int, data_dir: Path) -> Context:
+def load_config(config_file: Path, replica_experiment: int, data_dir: Path, experiment_number: int) -> Context:
     with open(config_file, "r") as f:
         config_raw = f.read()
-        config_raw = config_raw.split("\n")
+        config_raw = config_raw.split("\n")[:experiment_number]
     experiments = []
     for row in config_raw:
         row = row.split(",")
@@ -47,6 +48,7 @@ def load_config(config_file: Path, replica_experiment: int, data_dir: Path) -> C
     return Context(
         replica_experiment=replica_experiment,
         data_dir=data_dir,
+        experiment_number=experiment_number,
         experiments=experiments,
     )
 
@@ -148,6 +150,7 @@ def write_data(context: Context, output_dir: Path):
 def main(data_dir: Path,
          config_file: Path,
          output_dir: Path,
+         experiment_number: int,
          replica_experiment: Annotated[int, typer.Option(help="Number replica of experiments")] = 3,
          ):
     if not data_dir.exists():
@@ -166,7 +169,7 @@ def main(data_dir: Path,
         print(f"Error: {config_file} is not a csv file")
         sys.exit(1)
 
-    context = load_config(config_file, replica_experiment, data_dir)
+    context = load_config(config_file, replica_experiment, data_dir, experiment_number)
     load_data(context)
     
     process_data(context)
