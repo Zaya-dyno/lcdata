@@ -79,11 +79,11 @@ def load_data(config: Context):
             if "time" not in experiment:
                 experiment["time"] = conditions_data[current_index]["time"]
             raw_data = [
-                conditions_data[current_index + i]["raw"]
+                conditions_data[current_index + i]["raw"].rename(columns={"counts/sec": condition["name"]})
                 for i in range(config["replica_experiment"])
             ]
             subtracted_data = [
-                conditions_data[current_index + i]["subtracted"]
+                conditions_data[current_index + i]["subtracted"].rename(columns={"counts/sec": condition["name"]})
                 for i in range(config["replica_experiment"])
             ]
             raw_data_paths = [

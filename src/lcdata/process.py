@@ -17,7 +17,7 @@ def process_data(context: Context):
             condition["subtracted_data_combined"] = pd.concat(
                 condition["subtracted_data"], axis=1
             )
-            condition["raw_data_average"] = condition["raw_data_combined"].mean(axis=1)
+            condition["raw_data_average"] = condition["raw_data_combined"].mean(axis=1).to_frame(name=condition["name"])
             condition["subtracted_data_average"] = condition[
                 "subtracted_data_combined"
-            ].mean(axis=1)
+            ].mean(axis=1).to_frame(name=condition["name"])
