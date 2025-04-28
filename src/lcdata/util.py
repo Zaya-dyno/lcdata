@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 
 def letter_to_number(letter: str) -> int:
@@ -16,6 +17,24 @@ def value_file(file: Path) -> int:
     return n
 
 
+def compare_file_names_key(file: Path):
+    """
+    Returns a tuple for sorting based on the file name pattern:
+    [A]_[B][number]_[raw|subtracted]
+    """
+    name = file.stem
+    regex = re.compile(r"^([A-Z])_([A-Z])(\d+)_(raw|subtracted)$", re.IGNORECASE)
+    match = regex.match(name)
+    if not match:
+        # Fallback: sort lexicographically if pattern doesn't match
+        return (name,)
+    first_letter = match.group(1).upper()
+    second_letter = match.group(2).upper()
+    number = int(match.group(3))
+    raw_or_sub = 0 if match.group(4).lower() == "raw" else 1
+    return (first_letter, second_letter, number, raw_or_sub)
+
+
 def file_sorting(files: list[Path]) -> list[Path]:
-    files.sort(key=value_file)
+    files.sort(key=compare_file_names_key)
     return files

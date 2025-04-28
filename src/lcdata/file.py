@@ -58,7 +58,7 @@ def load_data(config: Context):
 
     conditions_data = []
     for condition in conditions_paths:
-        time = pd.read_csv(condition["raw"], skiprows=1)[["Time (days)"]]
+        time = pd.read_csv(condition["raw"], skiprows=1)[["Time (days)"]].rename(columns={"Time (days)": "time/days"})
         raw_data = pd.read_csv(condition["raw"], skiprows=1)[["counts/sec"]]
         subtracted_data = pd.read_csv(condition["subtracted"], skiprows=1)[
             ["counts/sec"]
