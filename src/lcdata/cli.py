@@ -18,19 +18,19 @@ def main(
     ] = 3,
 ):
     if not data_dir.exists():
-        print(f"Error: {data_dir} does not exist")
+        print(f"Error: {data_dir} does not exist", file=sys.stderr)
         sys.exit(1)
     if not data_dir.is_dir():
-        print(f"Error: {data_dir} is not a directory")
+        print(f"Error: {data_dir} is not a directory", file=sys.stderr)
         sys.exit(1)
     if not config_file.exists():
-        print(f"Error: {config_file} does not exist")
+        print(f"Error: {config_file} does not exist", file=sys.stderr)
         sys.exit(1)
     if not config_file.is_file():
-        print(f"Error: {config_file} is not a file")
+        print(f"Error: {config_file} is not a file", file=sys.stderr)
         sys.exit(1)
     if config_file.suffix != ".csv":
-        print(f"Error: {config_file} is not a csv file")
+        print(f"Error: {config_file} is not a csv file", file=sys.stderr)
         sys.exit(1)
 
     try:
@@ -38,7 +38,7 @@ def main(
             data_dir, config_file, output_dir, experiment_number, replica_experiment
         )
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
 
