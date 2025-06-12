@@ -11,19 +11,18 @@ class Condition(TypedDict):
     subtracted_data_combined: pd.DataFrame
     raw_data_average: pd.DataFrame
     subtracted_data_average: pd.DataFrame
-    raw_path: Path
-    subtracted_path: Path
+    raw_path: list[Path]
+    subtracted_path: list[Path]
 
 
 class Experiment(TypedDict):
     name: str
-    number_of_experiment: int
+    number_of_condition: int
     time: pd.DataFrame
     conditions: list[Condition]
 
 
 class Context(TypedDict):
-    replica_experiment: int
     data_dir: Path
-    experiment_number: int
+    number_of_experiment: int
     experiments: list[Experiment]

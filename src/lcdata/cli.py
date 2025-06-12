@@ -12,10 +12,6 @@ def main(
     data_dir: Path,
     config_file: Path,
     output_dir: Path,
-    experiment_number: int,
-    replica_experiment: Annotated[
-        int, typer.Option(help="Number replica of experiments")
-    ] = 3,
 ):
     if not data_dir.exists():
         print(f"Error: {data_dir} does not exist", file=sys.stderr)
@@ -35,7 +31,7 @@ def main(
 
     try:
         run_main(
-            data_dir, config_file, output_dir, experiment_number, replica_experiment
+            data_dir, config_file, output_dir
         )
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

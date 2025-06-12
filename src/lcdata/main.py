@@ -7,10 +7,8 @@ def run_main(
     data_dir: Path,
     config_file: Path,
     output_dir: Path,
-    experiment_number: int,
-    replica_experiment: int,
 ):
-    context = load_config(config_file, replica_experiment, data_dir, experiment_number)
+    context = load_config(config_file, data_dir)
     load_data(context)
 
     process_data(context)

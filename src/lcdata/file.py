@@ -3,32 +3,37 @@ from pathlib import Path
 import pandas as pd
 from .util import file_sorting
 from .error import FileHadlerError
+import json
 
 
 def load_config(
-    config_file: Path, replica_experiment: int, data_dir: Path, experiment_number: int
+    config_file: Path, data_dir: Path
 ) -> Context:
     with open(config_file, "r") as f:
-        config_raw = f.read()
-        config_raw = config_raw.split("\n")[:experiment_number]
+        config_data = json.load(f)
+    
     experiments = []
-    for row in config_raw:
-        row = row.split(",")
+    total_files = 0
+    for exp_data in config_data["experiments"]:
         experiments.append(
             Experiment(
-                name=row[0],
-                number_of_experiment=row[1],
+                name=exp_data["name"],
+                number_of_condition=exp_data["number_of_condition"],
                 conditions=[
-                    Condition(name=condition_name) for condition_name in row[2:]
+                    Condition(
+                        name=condition["name"],
+                        raw_path=[Path(p) for p in condition["raw_files"]],
+                        subtracted_path=[Path(p) for p in condition["subtracted_files"]]
+                    ) for condition in exp_data["conditions"]
                 ],
             )
         )
+        total_files += sum([len(condition["raw_files"]) for condition in exp_data["conditions"]])
 
     return Context(
-        replica_experiment=replica_experiment,
         data_dir=data_dir,
-        experiment_number=experiment_number,
         experiments=experiments,
+        total_files=total_files,
     )
 
 
@@ -36,69 +41,26 @@ def load_data(config: Context):
     files = list(config["data_dir"].iterdir())
 
     files = list(filter(lambda x: x.suffix == ".csv", files))
-    expected_number_of_files = 2 * config["replica_experiment"]
-    expected_number_of_files *= sum(
-        [len(experiment["conditions"]) for experiment in config["experiments"]]
-    )
-    if len(files) != expected_number_of_files:
+
+    if len(files) != config["total_files"]:
         raise FileHadlerError(
-            f"Expected {expected_number_of_files} files, but got {len(files)}"
-        )
-    files = file_sorting(files)
-    conditions_paths = []
-    for index in range(0, len(files), 2):
-        raw_file = files[index]
-        subtracted_file = files[index + 1]
-        conditions_paths.append(
-            {
-                "raw": raw_file,
-                "subtracted": subtracted_file,
-            }
+            f"Expected {config['total_files']} files, but got {len(files)}"
         )
 
-    conditions_data = []
-    for condition in conditions_paths:
-        time = pd.read_csv(condition["raw"], skiprows=1)[["Time (days)"]].rename(columns={"Time (days)": "time/days"})
-        raw_data = pd.read_csv(condition["raw"], skiprows=1)[["counts/sec"]]
-        subtracted_data = pd.read_csv(condition["subtracted"], skiprows=1)[
-            ["counts/sec"]
-        ]
-        conditions_data.append(
-            {
-                "time": time,
-                "raw": raw_data,
-                "subtracted": subtracted_data,
-                "raw_path": condition["raw"],
-                "subtracted_path": condition["subtracted"],
-            }
-        )
-
-    current_index = 0
     for experiment in config["experiments"]:
+        time = pd.read_csv(experiment["raw_path"][0], skiprows=1)[["Time (days)"]].rename(columns={"Time (days)": "time/days"})
+        experiment["time"] = time
         for condition in experiment["conditions"]:
-            if "time" not in experiment:
-                experiment["time"] = conditions_data[current_index]["time"]
             raw_data = [
-                conditions_data[current_index + i]["raw"].rename(columns={"counts/sec": condition["name"]})
-                for i in range(config["replica_experiment"])
+                pd.read_csv(raw_path, skiprows=1)[["counts/sec"]].rename(columns={"counts/sec": condition["name"]})
+                for raw_path in condition["raw_path"]
             ]
             subtracted_data = [
-                conditions_data[current_index + i]["subtracted"].rename(columns={"counts/sec": condition["name"]})
-                for i in range(config["replica_experiment"])
-            ]
-            raw_data_paths = [
-                conditions_data[current_index + i]["raw_path"]
-                for i in range(config["replica_experiment"])
-            ]
-            subtracted_data_paths = [
-                conditions_data[current_index + i]["subtracted_path"]
-                for i in range(config["replica_experiment"])
+                pd.read_csv(subtracted_path, skiprows=1)[["counts/sec"]].rename(columns={"counts/sec": condition["name"]})
+                for subtracted_path in condition["subtracted_path"]
             ]
             condition["raw_data"] = raw_data
             condition["subtracted_data"] = subtracted_data
-            condition["raw_path"] = raw_data_paths
-            condition["subtracted_path"] = subtracted_data_paths
-            current_index += config["replica_experiment"]
     return None
 
 
