@@ -25,8 +25,8 @@ def main(
     if not config_file.is_file():
         print(f"Error: {config_file} is not a file", file=sys.stderr)
         sys.exit(1)
-    if config_file.suffix != ".csv":
-        print(f"Error: {config_file} is not a csv file", file=sys.stderr)
+    if config_file.suffix != ".json":
+        print(f"Error: {config_file} is not a json file", file=sys.stderr)
         sys.exit(1)
 
     try:

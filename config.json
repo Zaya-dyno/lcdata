@@ -2,17 +2,11 @@
     "experiments": [
         {
             "name": "experiment1",
-            "number_of_experiment": 1,
+            "number_of_conditions": 1,
             "conditions": [
                 {
                     "name": "condition1",
-                    "raw_files": ["path/to/raw1.csv", "path/to/raw2.csv"],
-                    "subtracted_files": ["path/to/sub1.csv", "path/to/sub2.csv"]
-                },
-                {
-                    "name": "condition2",
-                    "raw_files": ["path/to/raw3.csv", "path/to/raw4.csv"],
-                    "subtracted_files": ["path/to/sub3.csv", "path/to/sub4.csv"]
+                    "files": [0, 1]
                 }
             ]
         }

@@ -12,24 +12,33 @@ def load_config(
     with open(config_file, "r") as f:
         config_data = json.load(f)
     
-    experiments = []
+    # Read file name in data_dir and convert int to Path using sort
+    files = list(data_dir.iterdir())
+    files = file_sorting(files)
+    raw, subtracted = [], []
+    for i in range(len(files)//2):
+        raw.append(files[i*2])
+        subtracted.append(files[i*2+1])
+
     total_files = 0
+
+    experiments = []
     for exp_data in config_data["experiments"]:
         experiments.append(
             Experiment(
                 name=exp_data["name"],
-                number_of_condition=exp_data["number_of_condition"],
+                number_of_condition=exp_data["number_of_conditions"],
                 conditions=[
                     Condition(
                         name=condition["name"],
-                        raw_path=[Path(p) for p in condition["raw_files"]],
-                        subtracted_path=[Path(p) for p in condition["subtracted_files"]]
+                        raw_path=[raw[i] for i in condition["files"]],
+                        subtracted_path=[subtracted[i] for i in condition["files"]]
                     ) for condition in exp_data["conditions"]
                 ],
             )
         )
-        total_files += sum([len(condition["raw_files"]) for condition in exp_data["conditions"]])
-
+        total_files += sum([len(condition["files"]) for condition in exp_data["conditions"]]) * 2
+    
     return Context(
         data_dir=data_dir,
         experiments=experiments,
@@ -38,6 +47,7 @@ def load_config(
 
 
 def load_data(config: Context):
+
     files = list(config["data_dir"].iterdir())
 
     files = list(filter(lambda x: x.suffix == ".csv", files))
@@ -48,7 +58,7 @@ def load_data(config: Context):
         )
 
     for experiment in config["experiments"]:
-        time = pd.read_csv(experiment["raw_path"][0], skiprows=1)[["Time (days)"]].rename(columns={"Time (days)": "time/days"})
+        time = pd.read_csv(experiment["conditions"][0]["raw_path"][0], skiprows=1)[["Time (days)"]].rename(columns={"Time (days)": "time/days"})
         experiment["time"] = time
         for condition in experiment["conditions"]:
             raw_data = [
